@@ -1,0 +1,20 @@
+dataset_id: outcomes
+path: data/raw/outcomes.csv
+file_type: csv
+primary_key: patient_id
+required_columns:
+- patient_id
+- severe_disease
+- last_followup_date
+optional_columns:
+- event_date
+expected_dtypes:
+  patient_id: string
+  severe_disease: string
+  last_followup_date: date
+  event_date: date
+allowed_values:
+  severe_disease:
+  - Y
+  - N
+rules_path: configs/rules/outcomes_rules.yaml

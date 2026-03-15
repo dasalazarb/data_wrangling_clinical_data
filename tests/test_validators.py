@@ -1,7 +1,7 @@
 import pandas as pd
 
-from clinical_pipeline.models import DatasetSpec
-from clinical_pipeline.validators import validate_columns, validate_primary_key, run_business_rules
+from clinical_data_pipeline.models import DatasetSpec
+from clinical_data_pipeline.validation.validators import validate_columns, validate_primary_key, run_business_rules
 
 
 def test_validate_columns_detects_missing_required():

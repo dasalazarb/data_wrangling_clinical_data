@@ -1,0 +1,18 @@
+dataset_id: visits
+path: data/raw/visits.csv
+file_type: csv
+primary_key: visit_id
+required_columns:
+- visit_id
+- patient_id
+- visit_date
+- essdai
+optional_columns:
+- esspri
+expected_dtypes:
+  visit_id: string
+  patient_id: string
+  visit_date: date
+  essdai: numeric
+  esspri: numeric
+rules_path: configs/rules/visits_rules.yaml

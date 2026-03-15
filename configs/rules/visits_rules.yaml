@@ -1,0 +1,15 @@
+rules:
+- name: patient_id_not_blank
+  type: not_blank
+  column: patient_id
+- name: essdai_valid_range
+  type: between
+  column: essdai
+  min: 0
+  max: 123
+- name: esspri_valid_range
+  type: between
+  column: esspri
+  min: 0
+  max: 10
+  allow_na: true

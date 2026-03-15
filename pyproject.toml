@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "clinical-pipeline"
+name = "clinical-data-pipeline"
 version = "0.1.0"
 description = "Robust clinical data wrangling, validation, merge auditing, and variable-catalog harmonization pipeline"
 readme = "README.md"
@@ -30,8 +30,8 @@ dev = [
 ]
 
 [project.scripts]
-clinical-pipeline = "clinical_pipeline.cli:main"
+clinical-data-pipeline = "clinical_data_pipeline.main:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "src/clinical_data_pipeline"]

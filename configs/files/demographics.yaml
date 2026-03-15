@@ -1,0 +1,27 @@
+dataset_id: demographics
+path: data/raw/demographics.csv
+file_type: csv
+primary_key: patient_id
+required_columns:
+- patient_id
+- sex
+- birth_date
+- race
+optional_columns:
+- ethnicity
+- death_date
+- index_date
+expected_dtypes:
+  patient_id: string
+  sex: string
+  birth_date: date
+  race: string
+  ethnicity: string
+  death_date: date
+  index_date: date
+allowed_values:
+  sex:
+  - M
+  - F
+  - U
+rules_path: configs/rules/demographics_rules.yaml

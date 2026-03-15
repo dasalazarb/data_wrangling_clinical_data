@@ -1,0 +1,24 @@
+dataset_id: labs
+path: data/raw/labs.csv
+file_type: csv
+primary_key: lab_id
+required_columns:
+- lab_id
+- patient_id
+- visit_date
+- ana_positive
+- rf_value
+optional_columns:
+- anti_ena
+expected_dtypes:
+  lab_id: string
+  patient_id: string
+  visit_date: date
+  ana_positive: string
+  rf_value: numeric
+  anti_ena: string
+allowed_values:
+  ana_positive:
+  - Y
+  - N
+rules_path: configs/rules/labs_rules.yaml

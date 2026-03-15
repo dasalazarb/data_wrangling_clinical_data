@@ -1,4 +1,4 @@
-project_name: sjogren_clinical_pipeline
+project_name: sjogren_clinical_data_pipeline
 run_name_prefix: sjogren_pipeline
 paths:
   raw_dir: data/raw
@@ -13,28 +13,9 @@ settings:
   log_level: INFO
 
 datasets:
-  - configs/datasets/demographics.yaml
-  - configs/datasets/visits.yaml
-  - configs/datasets/labs.yaml
-  - configs/datasets/outcomes.yaml
+  - configs/files/demographics.yaml
+  - configs/files/visits.yaml
+  - configs/files/labs.yaml
+  - configs/files/outcomes.yaml
 
-merge_plan:
-  steps:
-    - name: demographics_visits
-      left_dataset: demographics
-      right_dataset: visits
-      how: left
-      "on": [patient_id]
-      expected_relationship: one_to_many
-    - name: patient_visits_labs
-      left_dataset: demographics_visits
-      right_dataset: labs
-      how: left
-      "on": [patient_id, visit_date]
-      expected_relationship: one_to_one_or_many
-    - name: patient_visits_labs_outcomes
-      left_dataset: patient_visits_labs
-      right_dataset: outcomes
-      how: left
-      "on": [patient_id]
-      expected_relationship: one_to_one
+merge_plan_config: configs/merges/patient_pipeline_merges.yaml
