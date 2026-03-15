@@ -5,7 +5,8 @@ from pathlib import Path
 import pandas as pd
 
 from .io.config_loader import load_dataset_spec, load_yaml
-from .io.tables import read_table, write_table
+from .io.readers import read_table
+from .io.writers import write_table
 from .integrate.enterprise import run_optional_enterprise_checks
 from .integrate.merge import extract_unmatched, perform_merge, validate_merge_keys
 from .manifest import build_run_manifest, write_run_manifest
@@ -98,9 +99,13 @@ def run_patient_pipeline(config_path: str | Path, project_root: str | Path | Non
             all_results.append(result)
             write_step_result(result, Path(paths["reports_dir"]) / spec.dataset_id)
 
-        curated_path = Path(paths["curated_dir"]) / f"{spec.dataset_id}_{compact_ts()}.csv"
+        staging_path = Path(paths["staging_dir"]) / f"{spec.dataset_id}_{compact_ts()}.parquet"
+        write_table(df, staging_path)
+
+        curated_path = Path(paths["curated_dir"]) / f"{spec.dataset_id}_{compact_ts()}.parquet"
         write_table(df, curated_path)
         curated_tables[spec.dataset_id] = df
+        logger.info("[INFO] Staging dataset saved: %s", staging_path)
         logger.info("[INFO] Curated dataset saved: %s", curated_path)
         run_optional_enterprise_checks(logger, spec.dataset_id, paths["reports_dir"])
 
@@ -125,7 +130,7 @@ def run_patient_pipeline(config_path: str | Path, project_root: str | Path | Non
         write_step_result(merge_result, Path(paths["reports_dir"]) / "merge_quality")
 
         left_only, right_only = extract_unmatched(merged)
-        analytic_path = Path(paths["analytic_dir"]) / f"{merge_name}_{compact_ts()}.csv"
+        analytic_path = Path(paths["analytic_dir"]) / f"{merge_name}_{compact_ts()}.parquet"
         left_path = Path(paths["excluded_dir"]) / f"{merge_name}_left_only_{compact_ts()}.csv"
         right_path = Path(paths["excluded_dir"]) / f"{merge_name}_right_only_{compact_ts()}.csv"
         write_table(merged.drop(columns=["_merge"]), analytic_path)
