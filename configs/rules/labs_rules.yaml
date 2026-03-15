@@ -1,0 +1,12 @@
+rules:
+- name: rf_value_nonnegative
+  type: between
+  column: rf_value
+  min: 0
+  max: 1000
+- name: ana_positive_allowed
+  type: in_set
+  column: ana_positive
+  values:
+  - Y
+  - N

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from clinical_pipeline.merge import perform_merge, validate_merge_keys
+from clinical_data_pipeline.integrate.merge import perform_merge, validate_merge_keys
 
 
 def test_validate_merge_keys_success():

@@ -1,0 +1,17 @@
+rules:
+- name: patient_id_not_blank
+  type: not_blank
+  column: patient_id
+- name: birth_date_not_future
+  type: date_not_future
+  column: birth_date
+- name: death_after_birth
+  type: compare_dates
+  left: death_date
+  operator: '>='
+  right: birth_date
+- name: index_after_birth
+  type: compare_dates
+  left: index_date
+  operator: '>='
+  right: birth_date
