@@ -81,9 +81,9 @@ def build_canonical_catalog(config: dict, logger):
     ensure_dir(curated_dir)
 
     stamp = started_at[:19].replace(":", "").replace("-", "")
-    curated_path = curated_dir / f"{catalog_cfg.get('output_basename', 'canonical_variable_catalog')}_{stamp}.xlsx"
+    curated_path = curated_dir / f"{catalog_cfg.get('output_basename', 'canonical_variable_catalog')}_{stamp}.parquet"
     summary_path = reports_dir / f"variable_catalog_summary_{stamp}.csv"
-    out.to_excel(curated_path, index=False)
+    out.to_parquet(curated_path, index=False)
 
     summary = pd.DataFrame([
         {"metric": "input_rows", "value": len(df)},
