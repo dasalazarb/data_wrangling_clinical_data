@@ -1,0 +1,32 @@
+{
+  "step_name": "visits_dtype_validation",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0009,
+  "dataset_id": "visits",
+  "metrics": {
+    "visit_id": {
+      "expected": "string",
+      "observed": "string"
+    },
+    "patient_id": {
+      "expected": "string",
+      "observed": "string"
+    },
+    "visit_date": {
+      "expected": "date",
+      "observed": "datetime64[ns]"
+    },
+    "essdai": {
+      "expected": "numeric",
+      "observed": "int64"
+    },
+    "esspri": {
+      "expected": "numeric",
+      "observed": "int64"
+    }
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

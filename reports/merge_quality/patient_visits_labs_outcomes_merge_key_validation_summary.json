@@ -1,0 +1,15 @@
+{
+  "step_name": "patient_visits_labs_outcomes_merge_key_validation",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0001,
+  "dataset_id": "patient_visits_labs_outcomes",
+  "metrics": {
+    "merge_keys": [
+      "patient_id"
+    ]
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

@@ -1,0 +1,19 @@
+{
+  "step_name": "patient_visits_labs_outcomes_merge",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0066,
+  "dataset_id": "patient_visits_labs_outcomes",
+  "metrics": {
+    "left_rows": 5,
+    "right_rows": 5,
+    "merged_rows": 5,
+    "both_count": 5,
+    "left_only_count": 0,
+    "right_only_count": 0,
+    "match_rate_against_left": 1.0
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

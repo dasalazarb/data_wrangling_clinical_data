@@ -1,0 +1,6 @@
+patient_id,sex,birth_date,race,ethnicity,death_date,index_date,visit_id,visit_date,essdai,esspri,_merge
+P001,F,1980-03-10,White,Hispanic,,2022-01-15,V001,2022-01-15,4,7,both
+P002,M,1975-07-21,Black,Non-Hispanic,,2022-01-20,V002,2022-01-20,12,5,both
+P003,F,1990-11-01,Asian,Hispanic,,2022-02-11,V003,2022-02-11,2,3,both
+P004,F,1988-05-13,White,Non-Hispanic,,2022-03-01,V004,2022-03-01,7,8,both
+P005,U,1969-08-08,Other,Hispanic,,2022-04-01,V005,2022-04-01,3,2,both

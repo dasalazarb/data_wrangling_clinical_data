@@ -1,0 +1,36 @@
+{
+  "step_name": "labs_missingness_profile",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0036,
+  "dataset_id": "labs",
+  "metrics": {
+    "lab_id": {
+      "missing_count": 0,
+      "missing_pct": 0.0
+    },
+    "patient_id": {
+      "missing_count": 0,
+      "missing_pct": 0.0
+    },
+    "visit_date": {
+      "missing_count": 0,
+      "missing_pct": 0.0
+    },
+    "ana_positive": {
+      "missing_count": 0,
+      "missing_pct": 0.0
+    },
+    "rf_value": {
+      "missing_count": 0,
+      "missing_pct": 0.0
+    },
+    "anti_ena": {
+      "missing_count": 0,
+      "missing_pct": 0.0
+    }
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

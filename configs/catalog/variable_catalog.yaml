@@ -1,0 +1,17 @@
+project_name: sjogren_variable_catalog
+run_name_prefix: variable_catalog
+paths:
+  reports_dir: reports
+  logs_dir: logs
+  staging_dir: data/staging
+  curated_dir: data/curated
+settings:
+  log_level: INFO
+catalog:
+  input_path: data/input_catalog/variables_merge_once_quince.xlsx
+  input_sheet: variables_merged
+  output_basename: canonical_variable_catalog
+  select_column: SELECT_FOR_PIPELINE
+  question_name_column: QUESTION_NAME
+  default_selection_mode: both_studies
+  require_question_name: true

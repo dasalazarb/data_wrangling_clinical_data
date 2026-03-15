@@ -1,0 +1,6 @@
+lab_id,patient_id,visit_date,ana_positive,rf_value,anti_ena
+L001,P001,2022-01-15,Y,25,SSA
+L002,P002,2022-01-20,N,13,NEG
+L003,P003,2022-02-11,Y,78,SSB
+L004,P004,2022-03-01,Y,5,NEG
+L005,P005,2022-04-01,N,0,NEG

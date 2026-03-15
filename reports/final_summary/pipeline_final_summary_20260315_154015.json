@@ -1,0 +1,52 @@
+{
+  "run_id": "sjogren_pipeline_20260315_154015",
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "dataset_count": 4,
+  "result_count": 38,
+  "merge_outputs": {
+    "demographics_visits": {
+      "analytic_path": "/mnt/data/clinical_pipeline_repo/data/analytic/demographics_visits_20260315_154015.csv",
+      "left_only_path": "/mnt/data/clinical_pipeline_repo/data/excluded/demographics_visits_left_only_20260315_154015.csv",
+      "right_only_path": "/mnt/data/clinical_pipeline_repo/data/excluded/demographics_visits_right_only_20260315_154015.csv",
+      "metrics": {
+        "left_rows": 5,
+        "right_rows": 5,
+        "merged_rows": 5,
+        "both_count": 5,
+        "left_only_count": 0,
+        "right_only_count": 0,
+        "match_rate_against_left": 1.0
+      }
+    },
+    "patient_visits_labs": {
+      "analytic_path": "/mnt/data/clinical_pipeline_repo/data/analytic/patient_visits_labs_20260315_154015.csv",
+      "left_only_path": "/mnt/data/clinical_pipeline_repo/data/excluded/patient_visits_labs_left_only_20260315_154015.csv",
+      "right_only_path": "/mnt/data/clinical_pipeline_repo/data/excluded/patient_visits_labs_right_only_20260315_154015.csv",
+      "metrics": {
+        "left_rows": 5,
+        "right_rows": 5,
+        "merged_rows": 5,
+        "both_count": 5,
+        "left_only_count": 0,
+        "right_only_count": 0,
+        "match_rate_against_left": 1.0
+      }
+    },
+    "patient_visits_labs_outcomes": {
+      "analytic_path": "/mnt/data/clinical_pipeline_repo/data/analytic/patient_visits_labs_outcomes_20260315_154015.csv",
+      "left_only_path": "/mnt/data/clinical_pipeline_repo/data/excluded/patient_visits_labs_outcomes_left_only_20260315_154015.csv",
+      "right_only_path": "/mnt/data/clinical_pipeline_repo/data/excluded/patient_visits_labs_outcomes_right_only_20260315_154015.csv",
+      "metrics": {
+        "left_rows": 5,
+        "right_rows": 5,
+        "merged_rows": 5,
+        "both_count": 5,
+        "left_only_count": 0,
+        "right_only_count": 0,
+        "match_rate_against_left": 1.0
+      }
+    }
+  },
+  "report_root": "/mnt/data/clinical_pipeline_repo/reports",
+  "analytic_root": "/mnt/data/clinical_pipeline_repo/data/analytic"
+}

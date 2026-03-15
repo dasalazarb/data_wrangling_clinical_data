@@ -1,0 +1,19 @@
+{
+  "step_name": "labs_allowed_values_validation",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0007,
+  "dataset_id": "labs",
+  "metrics": {
+    "ana_positive": {
+      "allowed": [
+        "Y",
+        "N"
+      ],
+      "invalid_values": []
+    }
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

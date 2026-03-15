@@ -1,0 +1,15 @@
+{
+  "step_name": "outcomes_sanity_checks",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0004,
+  "dataset_id": "outcomes",
+  "metrics": {
+    "n_rows": 5,
+    "n_columns": 4,
+    "memory_bytes_estimate": 727
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

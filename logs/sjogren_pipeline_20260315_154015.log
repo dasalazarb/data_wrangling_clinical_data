@@ -1,0 +1,17 @@
+2026-03-15 15:40:15,259 | INFO | [INFO] Starting patient-data pipeline
+2026-03-15 15:40:15,273 | INFO | [INFO] Processing dataset: demographics
+2026-03-15 15:40:15,310 | INFO | [INFO] Curated dataset saved: /mnt/data/clinical_pipeline_repo/data/curated/demographics_20260315_154015.csv
+2026-03-15 15:40:15,312 | INFO | [INFO] Enterprise adapter placeholder executed for demographics
+2026-03-15 15:40:15,316 | INFO | [INFO] Processing dataset: visits
+2026-03-15 15:40:15,341 | INFO | [INFO] Curated dataset saved: /mnt/data/clinical_pipeline_repo/data/curated/visits_20260315_154015.csv
+2026-03-15 15:40:15,343 | INFO | [INFO] Enterprise adapter placeholder executed for visits
+2026-03-15 15:40:15,347 | INFO | [INFO] Processing dataset: labs
+2026-03-15 15:40:15,387 | INFO | [INFO] Curated dataset saved: /mnt/data/clinical_pipeline_repo/data/curated/labs_20260315_154015.csv
+2026-03-15 15:40:15,389 | INFO | [INFO] Enterprise adapter placeholder executed for labs
+2026-03-15 15:40:15,393 | INFO | [INFO] Processing dataset: outcomes
+2026-03-15 15:40:15,419 | INFO | [INFO] Curated dataset saved: /mnt/data/clinical_pipeline_repo/data/curated/outcomes_20260315_154015.csv
+2026-03-15 15:40:15,420 | INFO | [INFO] Enterprise adapter placeholder executed for outcomes
+2026-03-15 15:40:15,421 | INFO | [INFO] Running merge: demographics_visits
+2026-03-15 15:40:15,440 | INFO | [INFO] Running merge: patient_visits_labs
+2026-03-15 15:40:15,456 | INFO | [INFO] Running merge: patient_visits_labs_outcomes
+2026-03-15 15:40:15,487 | INFO | [INFO] Pipeline completed. Summary: /mnt/data/clinical_pipeline_repo/reports/final_summary/pipeline_final_summary_20260315_154015.json

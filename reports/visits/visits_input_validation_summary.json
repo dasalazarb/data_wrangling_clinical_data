@@ -1,0 +1,15 @@
+{
+  "step_name": "visits_input_validation",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0003,
+  "dataset_id": "visits",
+  "metrics": {
+    "path": "/mnt/data/clinical_pipeline_repo/data/raw/visits.csv",
+    "size_bytes": 171,
+    "sha256": "a5e91ebbebe64b0359b73edbc1def872f22c95cb66f66ca322f0a243d2b92971"
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

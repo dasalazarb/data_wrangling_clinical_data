@@ -1,0 +1,40 @@
+{
+  "step_name": "demographics_dtype_validation",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0014,
+  "dataset_id": "demographics",
+  "metrics": {
+    "patient_id": {
+      "expected": "string",
+      "observed": "string"
+    },
+    "sex": {
+      "expected": "string",
+      "observed": "string"
+    },
+    "birth_date": {
+      "expected": "date",
+      "observed": "datetime64[ns]"
+    },
+    "race": {
+      "expected": "string",
+      "observed": "string"
+    },
+    "ethnicity": {
+      "expected": "string",
+      "observed": "string"
+    },
+    "death_date": {
+      "expected": "date",
+      "observed": "datetime64[ns]"
+    },
+    "index_date": {
+      "expected": "date",
+      "observed": "datetime64[ns]"
+    }
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

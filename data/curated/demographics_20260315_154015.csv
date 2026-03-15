@@ -1,0 +1,6 @@
+patient_id,sex,birth_date,race,ethnicity,death_date,index_date
+P001,F,1980-03-10,White,Hispanic,,2022-01-15
+P002,M,1975-07-21,Black,Non-Hispanic,,2022-01-20
+P003,F,1990-11-01,Asian,Hispanic,,2022-02-11
+P004,F,1988-05-13,White,Non-Hispanic,,2022-03-01
+P005,U,1969-08-08,Other,Hispanic,,2022-04-01

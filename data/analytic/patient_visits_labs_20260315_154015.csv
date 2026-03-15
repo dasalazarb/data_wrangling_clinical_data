@@ -1,0 +1,6 @@
+patient_id,sex,birth_date,race,ethnicity,death_date,index_date,visit_id,visit_date,essdai,esspri,lab_id,ana_positive,rf_value,anti_ena,_merge
+P001,F,1980-03-10,White,Hispanic,,2022-01-15,V001,2022-01-15,4,7,L001,Y,25,SSA,both
+P002,M,1975-07-21,Black,Non-Hispanic,,2022-01-20,V002,2022-01-20,12,5,L002,N,13,NEG,both
+P003,F,1990-11-01,Asian,Hispanic,,2022-02-11,V003,2022-02-11,2,3,L003,Y,78,SSB,both
+P004,F,1988-05-13,White,Non-Hispanic,,2022-03-01,V004,2022-03-01,7,8,L004,Y,5,NEG,both
+P005,U,1969-08-08,Other,Hispanic,,2022-04-01,V005,2022-04-01,3,2,L005,N,0,NEG,both

@@ -1,0 +1,28 @@
+{
+  "step_name": "demographics_business_rules",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0017,
+  "dataset_id": "demographics",
+  "metrics": {
+    "patient_id_not_blank": {
+      "rule_type": "not_blank",
+      "failing_rows": 0
+    },
+    "birth_date_not_future": {
+      "rule_type": "date_not_future",
+      "failing_rows": 0
+    },
+    "death_after_birth": {
+      "rule_type": "compare_dates",
+      "failing_rows": 0
+    },
+    "index_after_birth": {
+      "rule_type": "compare_dates",
+      "failing_rows": 0
+    }
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

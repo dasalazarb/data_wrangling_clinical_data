@@ -1,0 +1,36 @@
+{
+  "step_name": "labs_dtype_validation",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0013,
+  "dataset_id": "labs",
+  "metrics": {
+    "lab_id": {
+      "expected": "string",
+      "observed": "string"
+    },
+    "patient_id": {
+      "expected": "string",
+      "observed": "string"
+    },
+    "visit_date": {
+      "expected": "date",
+      "observed": "datetime64[ns]"
+    },
+    "ana_positive": {
+      "expected": "string",
+      "observed": "string"
+    },
+    "rf_value": {
+      "expected": "numeric",
+      "observed": "int64"
+    },
+    "anti_ena": {
+      "expected": "string",
+      "observed": "string"
+    }
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

@@ -1,0 +1,21 @@
+{
+  "step_name": "variable_catalog_build",
+  "success": true,
+  "started_at": "2026-03-15T15:39:37+00:00",
+  "finished_at": "2026-03-15T15:39:38+00:00",
+  "duration_seconds": 1.3538,
+  "dataset_id": "variable_catalog",
+  "metrics": {
+    "input_rows": 1810,
+    "selected_rows": 1383,
+    "both_studies": 1383,
+    "once_only": 343,
+    "quince_only": 84,
+    "harmonization_review_needed": 1810
+  },
+  "artifacts": {
+    "catalog": "/mnt/data/clinical_pipeline_repo/data/curated/variable_catalog/canonical_variable_catalog_20260315T153937.xlsx",
+    "summary": "/mnt/data/clinical_pipeline_repo/reports/variable_catalog/variable_catalog_summary_20260315T153937.csv"
+  },
+  "issue_count": 0
+}

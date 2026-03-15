@@ -1,0 +1,20 @@
+{
+  "step_name": "outcomes_business_rules",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0009,
+  "dataset_id": "outcomes",
+  "metrics": {
+    "severe_disease_allowed": {
+      "rule_type": "in_set",
+      "failing_rows": 0
+    },
+    "event_before_followup": {
+      "rule_type": "compare_dates",
+      "failing_rows": 0
+    }
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

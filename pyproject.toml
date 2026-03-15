@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clinical-pipeline"
+version = "0.1.0"
+description = "Robust clinical data wrangling, validation, merge auditing, and variable-catalog harmonization pipeline"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "OpenAI for Diego Salazar"}]
+dependencies = [
+  "pandas>=2.0",
+  "openpyxl>=3.1",
+  "PyYAML>=6.0",
+  "pydantic>=2.6",
+  "pydantic-settings>=2.2",
+  "rich>=13.7"
+]
+
+[project.optional-dependencies]
+enterprise = [
+  "duckdb>=1.0.0",
+  "pandera>=0.20.0",
+  "great-expectations>=1.0.0",
+  "pyarrow>=15.0.0"
+]
+dev = [
+  "pytest>=8.0"
+]
+
+[project.scripts]
+clinical-pipeline = "clinical_pipeline.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

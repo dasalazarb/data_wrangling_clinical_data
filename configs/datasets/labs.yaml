@@ -1,0 +1,31 @@
+dataset_id: labs
+path: data/raw/labs.csv
+file_type: csv
+primary_key: lab_id
+required_columns:
+  - lab_id
+  - patient_id
+  - visit_date
+  - ana_positive
+  - rf_value
+optional_columns:
+  - anti_ena
+expected_dtypes:
+  lab_id: string
+  patient_id: string
+  visit_date: date
+  ana_positive: string
+  rf_value: numeric
+  anti_ena: string
+allowed_values:
+  ana_positive: [Y, N]
+rules:
+  - name: rf_value_nonnegative
+    type: between
+    column: rf_value
+    min: 0
+    max: 1000
+  - name: ana_positive_allowed
+    type: in_set
+    column: ana_positive
+    values: [Y, N]

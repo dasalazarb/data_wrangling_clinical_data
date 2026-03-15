@@ -1,0 +1,20 @@
+{
+  "step_name": "labs_business_rules",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.001,
+  "dataset_id": "labs",
+  "metrics": {
+    "rf_value_nonnegative": {
+      "rule_type": "between",
+      "failing_rows": 0
+    },
+    "ana_positive_allowed": {
+      "rule_type": "in_set",
+      "failing_rows": 0
+    }
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

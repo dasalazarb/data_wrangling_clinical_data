@@ -1,0 +1,15 @@
+{
+  "step_name": "labs_input_validation",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0004,
+  "dataset_id": "labs",
+  "metrics": {
+    "path": "/mnt/data/clinical_pipeline_repo/data/raw/labs.csv",
+    "size_bytes": 208,
+    "sha256": "ad90119efd7a7b89305dd3d8a23495724a9568dba5956e01094cbba102f86c2b"
+  },
+  "artifacts": {},
+  "issue_count": 0
+}

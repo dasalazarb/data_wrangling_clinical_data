@@ -1,0 +1,16 @@
+{
+  "step_name": "demographics_primary_key_validation",
+  "success": true,
+  "started_at": "2026-03-15T15:40:15+00:00",
+  "finished_at": "2026-03-15T15:40:15+00:00",
+  "duration_seconds": 0.0008,
+  "dataset_id": "demographics",
+  "metrics": {
+    "primary_key": "patient_id",
+    "blank_key_count": 0,
+    "duplicate_key_count": 0,
+    "unique_key_count": 5
+  },
+  "artifacts": {},
+  "issue_count": 0
+}
