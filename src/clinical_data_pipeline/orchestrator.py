@@ -11,7 +11,7 @@ from .integrate.enterprise import run_optional_enterprise_checks
 from .integrate.merge import extract_unmatched, perform_merge, validate_merge_keys
 from .manifest import build_run_manifest, write_run_manifest
 from .reporting.results import write_final_summary, write_step_result
-from .settings import apply_path_prefixes, guess_project_root, resolve_path
+from .settings import get_settings, guess_project_root, resolve_path
 from .transform.catalog import build_canonical_catalog
 from .utils.core import compact_ts, ensure_dir
 from .utils.logger import build_logger
@@ -38,7 +38,8 @@ def _load_merge_steps(config: dict, project_root: Path) -> list[dict]:
 
 def run_variable_catalog_pipeline(config_path: str | Path, project_root: str | Path | None = None) -> dict:
     project_root = Path(project_root or guess_project_root(config_path))
-    config = apply_path_prefixes(load_yaml(config_path), project_root)
+    config_obj = get_settings(config_path=config_path, project_root=project_root)
+    config = config_obj.model_dump(mode="json")
     run_id = f"{config.get('run_name_prefix', 'catalog')}_{compact_ts()}"
     logger = build_logger(config["paths"]["logs_dir"], run_id, config.get("settings", {}).get("log_level", "INFO"))
     logger.info("[INFO] Starting variable catalog pipeline")
@@ -60,7 +61,8 @@ def run_variable_catalog_pipeline(config_path: str | Path, project_root: str | P
 
 def run_patient_pipeline(config_path: str | Path, project_root: str | Path | None = None) -> dict:
     project_root = Path(project_root or guess_project_root(config_path))
-    config = apply_path_prefixes(load_yaml(config_path), project_root)
+    config_obj = get_settings(config_path=config_path, project_root=project_root)
+    config = config_obj.model_dump(mode="json")
     run_id = f"{config.get('run_name_prefix', 'pipeline')}_{compact_ts()}"
     paths = config["paths"]
     logger = build_logger(paths["logs_dir"], run_id, config.get("settings", {}).get("log_level", "INFO"))
