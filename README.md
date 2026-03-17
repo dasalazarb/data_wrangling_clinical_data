@@ -27,6 +27,8 @@ clinical_data_pipeline_repo/
 
 ## Quick start
 
+Requiere **Python 3.10 o superior**.
+
 ```bash
 pip install -e .
 ```
