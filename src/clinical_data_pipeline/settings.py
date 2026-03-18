@@ -15,11 +15,11 @@ DEFAULT_CONFIG_PATH = Path("configs/pipeline.yaml")
 
 
 class PathsSettings(BaseModel):
-    raw_dir: Path
+    raw_dir: Path = Path("data/raw")
     staging_dir: Path
     curated_dir: Path
-    analytic_dir: Path
-    excluded_dir: Path
+    analytic_dir: Path = Path("data/analytic")
+    excluded_dir: Path = Path("data/excluded")
     reports_dir: Path
     logs_dir: Path
 
@@ -81,6 +81,9 @@ class PipelineSettings(BaseModel):
 
     @model_validator(mode="after")
     def require_merge_configuration(self) -> "PipelineSettings":
+        if self.catalog is not None:
+            return self
+
         if self.merge_plan is None and self.merge_plan_config is None:
             raise ValueError("Either 'merge_plan' or 'merge_plan_config' must be configured")
         return self
