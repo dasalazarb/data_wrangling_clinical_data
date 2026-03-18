@@ -50,10 +50,11 @@ def build_canonical_catalog(config: dict, logger):
         lambda r: ",".join([x for x, ok in zip(["once", "quince"], r.tolist()) if bool(ok)]), axis=1
     )
     df["needs_harmonization_review"] = (
-        (df.get("QUESTION_TEXTS_MATCH", 1).fillna(1).astype(str) != "1") |
-        (df.get("ANSWER_FORMATS_MATCH", 1).fillna(1).astype(str) != "1") |
-        (df.get("ANSWER_RANGES_MATCH", 1).fillna(1).astype(str) != "1") |
-        (df.get("DISPLAY_OPTIONS_MATCH", 1).fillna(1).astype(str) != "1")
+        (df.get("QUESTION_TEXTS_MATCH", 1).fillna(1) != 1) |
+        (df.get("ANSWER_FORMATS_MATCH", 1).fillna(1) != 1) |
+        (df.get("ANSWER_RANGES_MATCH", 1).fillna(1) != 1) |
+        (df.get("DISPLAY_OPTIONS_MATCH", 1).fillna(1) != 1) |
+        (df.get("FORM_NAMES_MATCH", 1).fillna(1) != 1)
     )
 
     keep_cols = [
