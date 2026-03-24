@@ -326,7 +326,7 @@ def run_patient_pipeline(config_path: str | Path, project_root: str | Path | Non
         workbook_clinical_header_row = 2
         workbook_skip_rows_after_header = 0
         if is_clean_dataframe_layout:
-            workbook_header_strategy = None
+            workbook_header_strategy = "clean_dataframe"
             if str(workbook_file_type).lower() == "ctdb_merged_excel":
                 workbook_file_type = "xlsx"
         else:

@@ -123,6 +123,55 @@ def test_read_table_from_spec_keeps_backward_compat_for_normal_xlsx(tmp_path: Pa
     pd.testing.assert_frame_equal(loaded, expected)
 
 
+def test_read_table_from_spec_clean_strategy_bypasses_merged_header_rules(tmp_path: Path):
+    path = tmp_path / "clean_layout.xlsx"
+    raw = pd.DataFrame(
+        [
+            ["patient_id", "demographic_score", "o_plus_score"],
+            [None, None, None],
+            [None, None, None],
+            ["p1", "A", 7],
+        ]
+    )
+    raw.to_excel(path, header=False, index=False)
+    spec = DatasetSpec(
+        dataset_id="clean_layout",
+        path=path,
+        file_type="ctdb_merged_excel",
+        primary_key=None,
+        required_columns=[],
+        optional_columns=[],
+        expected_dtypes={},
+        header_strategy="clean_dataframe",
+    )
+
+    loaded = read_table_from_spec(spec)
+
+    assert list(loaded.columns) == ["patient_id", "demographic_score", "o_plus_score"]
+    cleaned = loaded.dropna(how="all").reset_index(drop=True)
+    assert cleaned.iloc[0].to_dict() == {"patient_id": "p1", "demographic_score": "A", "o_plus_score": 7}
+
+
+def test_read_table_from_spec_empty_strategy_uses_standard_excel_reader(tmp_path: Path):
+    path = tmp_path / "clean_layout_default_strategy.xlsx"
+    expected = pd.DataFrame({"patient_id": ["p1"], "value": [10]})
+    expected.to_excel(path, index=False)
+    spec = DatasetSpec(
+        dataset_id="clean_layout_default",
+        path=path,
+        file_type="ctdb_merged_excel",
+        primary_key=None,
+        required_columns=[],
+        optional_columns=[],
+        expected_dtypes={},
+        header_strategy=None,
+    )
+
+    loaded = read_table_from_spec(spec)
+
+    pd.testing.assert_frame_equal(loaded, expected)
+
+
 def test_read_ctdb_merged_excel_raises_on_missing_required_headers(tmp_path: Path):
     path = tmp_path / "ctdb_invalid.xlsx"
     raw = pd.DataFrame(

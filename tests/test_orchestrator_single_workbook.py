@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from pathlib import Path
 
 from clinical_data_pipeline.orchestrator import (
     _derive_domain_views,
@@ -103,3 +104,67 @@ def test_normalize_single_workbook_with_mapping_fails_early_on_missing_required(
 
     assert results[0].success is False
     assert any("Missing required mapped columns" in issue.message for issue in results[0].issues)
+
+
+def test_run_patient_pipeline_sets_clean_header_strategy_for_auto_detect(monkeypatch, tmp_path: Path):
+    workbook_path = tmp_path / "raw" / "CTDB Data Download.xlsx"
+    workbook_path.parent.mkdir(parents=True, exist_ok=True)
+    workbook_path.write_bytes(b"placeholder")
+
+    captured_specs = []
+
+    class StubConfig:
+        def model_dump(self, mode: str = "json"):
+            return {
+                "paths": {
+                    "raw_dir": str(workbook_path.parent),
+                    "reports_dir": str(tmp_path / "reports"),
+                    "staging_dir": str(tmp_path / "staging"),
+                    "curated_dir": str(tmp_path / "curated"),
+                    "analytic_dir": str(tmp_path / "analytic"),
+                    "excluded_dir": str(tmp_path / "excluded"),
+                    "logs_dir": str(tmp_path / "logs"),
+                },
+                "single_workbook_input": {
+                    "auto_detect": True,
+                    "input_layout": "clean_dataframe",
+                    "file_type": "ctdb_merged_excel",
+                },
+                "datasets": [],
+                "settings": {"log_level": "INFO", "fail_fast": False},
+            }
+
+    class StubLogger:
+        def info(self, *args, **kwargs):
+            return None
+
+    monkeypatch.setattr("clinical_data_pipeline.orchestrator.get_settings", lambda **kwargs: StubConfig())
+    monkeypatch.setattr("clinical_data_pipeline.orchestrator.build_run_context", lambda config, config_path: {"run_id": "test-run", "output_roots": {"versioned": {}}})
+    monkeypatch.setattr("clinical_data_pipeline.orchestrator.collect_file_metadata", lambda path: {"path": str(path)})
+    monkeypatch.setattr("clinical_data_pipeline.orchestrator.ensure_dir", lambda path: None)
+    monkeypatch.setattr("clinical_data_pipeline.orchestrator.build_logger", lambda *args, **kwargs: StubLogger())
+    monkeypatch.setattr("clinical_data_pipeline.orchestrator.resolve_path", lambda path, project_root: Path(path))
+
+    def _write_manifest(*args, **kwargs):
+        manifest_path = tmp_path / "manifest.json"
+        manifest_path.write_text("{}", encoding="utf-8")
+        return manifest_path
+
+    monkeypatch.setattr("clinical_data_pipeline.orchestrator.write_run_manifest", _write_manifest)
+    monkeypatch.setattr("clinical_data_pipeline.orchestrator.write_final_summary", lambda *args, **kwargs: tmp_path / "summary.json")
+    monkeypatch.setattr("clinical_data_pipeline.orchestrator.build_final_summary", lambda *args, **kwargs: {"ok": True})
+    monkeypatch.setattr("clinical_data_pipeline.orchestrator.run_optional_enterprise_checks", lambda *args, **kwargs: None)
+
+    def _capture_spec(spec):
+        captured_specs.append(spec)
+        return pd.DataFrame({"patient_id": ["P1"]})
+
+    monkeypatch.setattr("clinical_data_pipeline.orchestrator.read_table_from_spec", _capture_spec)
+
+    from clinical_data_pipeline.orchestrator import run_patient_pipeline
+
+    run_patient_pipeline(tmp_path / "pipeline.yaml", project_root=tmp_path)
+
+    assert captured_specs
+    assert captured_specs[0].header_strategy == "clean_dataframe"
+    assert captured_specs[0].file_type == "xlsx"
