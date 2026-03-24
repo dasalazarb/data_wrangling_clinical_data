@@ -276,21 +276,40 @@ def run_patient_pipeline(config_path: str | Path, project_root: str | Path | Non
 
     single_workbook_cfg = config.get("single_workbook_input", {})
     if single_workbook_cfg.get("enabled", False):
+        input_layout = str(single_workbook_cfg.get("input_layout", "")).strip().lower()
+        is_clean_dataframe_layout = input_layout == "clean_dataframe"
+
         workbook_path = resolve_path(single_workbook_cfg["path"], project_root)
+        workbook_file_type = single_workbook_cfg.get("file_type", "xlsx")
+        workbook_header_strategy = single_workbook_cfg.get("header_strategy")
+        workbook_demographics_column_end = "N"
+        workbook_demographics_header_row = 3
+        workbook_clinical_header_row = 2
+        workbook_skip_rows_after_header = 0
+        if is_clean_dataframe_layout:
+            workbook_header_strategy = None
+            if str(workbook_file_type).lower() == "ctdb_merged_excel":
+                workbook_file_type = "xlsx"
+        else:
+            workbook_demographics_column_end = single_workbook_cfg.get("demographics_column_end", "N")
+            workbook_demographics_header_row = single_workbook_cfg.get("demographics_header_row", 3)
+            workbook_clinical_header_row = single_workbook_cfg.get("clinical_header_row", 2)
+            workbook_skip_rows_after_header = single_workbook_cfg.get("skip_rows_after_header", 0)
+
         single_workbook_spec = DatasetSpec(
             dataset_id="single_workbook_input",
             path=workbook_path,
-            file_type=single_workbook_cfg.get("file_type", "xlsx"),
+            file_type=workbook_file_type,
             primary_key=single_workbook_cfg.get("primary_key"),
             required_columns=[],
             optional_columns=[],
             expected_dtypes={},
             sheet_name=single_workbook_cfg.get("sheet_name", 0),
-            header_strategy=single_workbook_cfg.get("header_strategy"),
-            demographics_column_end=single_workbook_cfg.get("demographics_column_end", "N"),
-            demographics_header_row=single_workbook_cfg.get("demographics_header_row", 3),
-            clinical_header_row=single_workbook_cfg.get("clinical_header_row", 2),
-            skip_rows_after_header=single_workbook_cfg.get("skip_rows_after_header", 0),
+            header_strategy=workbook_header_strategy,
+            demographics_column_end=workbook_demographics_column_end,
+            demographics_header_row=workbook_demographics_header_row,
+            clinical_header_row=workbook_clinical_header_row,
+            skip_rows_after_header=workbook_skip_rows_after_header,
         )
         files_read.append(collect_file_metadata(workbook_path))
         base_df = read_table_from_spec(single_workbook_spec)
