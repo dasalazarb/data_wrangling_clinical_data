@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import time
+from dataclasses import replace
 from pathlib import Path
 
 import pandas as pd
@@ -12,6 +13,7 @@ from .io.readers import read_table_from_spec
 from .io.writers import write_table
 from .integrate.enterprise import run_optional_enterprise_checks
 from .integrate.merge import extract_unmatched, perform_merge, validate_merge_keys
+from .models import DatasetSpec
 from .reporting.export import write_run_manifest
 from .reporting.results import write_final_summary, write_step_result
 from .reporting.summary import build_final_summary
@@ -38,6 +40,28 @@ def _load_merge_steps(config: dict, project_root: Path) -> list[dict]:
     if merge_plan_path:
         merge_plan_cfg = load_yaml(resolve_path(merge_plan_path, project_root))
     return merge_plan_cfg.get("steps", []) if merge_plan_cfg else []
+
+
+def _normalize_single_workbook_base(df: pd.DataFrame, patient_id_column: str | None = "patient_id") -> pd.DataFrame:
+    normalized = df.copy()
+    normalized.columns = [str(col).strip() for col in normalized.columns]
+    normalized = normalized.dropna(how="all").reset_index(drop=True)
+    if patient_id_column and patient_id_column in normalized.columns:
+        normalized = normalized.dropna(subset=[patient_id_column]).reset_index(drop=True)
+    return normalized
+
+
+def _derive_domain_views(base_df: pd.DataFrame, domain_mappings: dict[str, dict]) -> dict[str, pd.DataFrame]:
+    derived: dict[str, pd.DataFrame] = {}
+    for domain_name, mapping in domain_mappings.items():
+        columns = mapping.get("columns", [])
+        rename_map = mapping.get("rename", {})
+        missing = [col for col in columns if col not in base_df.columns]
+        if missing:
+            raise ValueError(f"Domain '{domain_name}' references missing columns in single workbook input: {missing}")
+        view = base_df.loc[:, columns].rename(columns=rename_map).copy()
+        derived[domain_name] = view
+    return derived
 
 
 def run_variable_catalog_pipeline(config_path: str | Path, project_root: str | Path | None = None) -> dict:
@@ -84,6 +108,8 @@ def run_patient_pipeline(config_path: str | Path, project_root: str | Path | Non
     files_read = [collect_file_metadata(config_path)]
     generated_datasets: dict[str, dict[str, str]] = {"staging": {}, "curated": {}, "analytic": {}, "excluded": {}}
     generated_artifacts: dict[str, str] = {}
+    derived_views: dict[str, pd.DataFrame] = {}
+    single_workbook_spec: DatasetSpec | None = None
 
     reports_root = Path(versioned_paths.get("reports_dir", paths["reports_dir"]))
     staging_root = Path(versioned_paths.get("staging_dir", paths["staging_dir"]))
@@ -91,21 +117,49 @@ def run_patient_pipeline(config_path: str | Path, project_root: str | Path | Non
     analytic_root = Path(versioned_paths.get("analytic_dir", paths["analytic_dir"]))
     excluded_root = Path(versioned_paths.get("excluded_dir", paths["excluded_dir"]))
 
+    single_workbook_cfg = config.get("single_workbook_input", {})
+    if single_workbook_cfg.get("enabled", False):
+        workbook_path = resolve_path(single_workbook_cfg["path"], project_root)
+        single_workbook_spec = DatasetSpec(
+            dataset_id="single_workbook_input",
+            path=workbook_path,
+            file_type=single_workbook_cfg.get("file_type", "xlsx"),
+            primary_key=single_workbook_cfg.get("primary_key"),
+            required_columns=[],
+            optional_columns=[],
+            expected_dtypes={},
+            sheet_name=single_workbook_cfg.get("sheet_name", 0),
+            header_strategy=single_workbook_cfg.get("header_strategy"),
+            demographics_column_end=single_workbook_cfg.get("demographics_column_end", "N"),
+            demographics_header_row=single_workbook_cfg.get("demographics_header_row", 3),
+            clinical_header_row=single_workbook_cfg.get("clinical_header_row", 2),
+            skip_rows_after_header=single_workbook_cfg.get("skip_rows_after_header", 0),
+        )
+        files_read.append(collect_file_metadata(workbook_path))
+        base_df = read_table_from_spec(single_workbook_spec)
+        base_df = _normalize_single_workbook_base(base_df, single_workbook_cfg.get("patient_id_column", "patient_id"))
+        derived_views = _derive_domain_views(base_df, single_workbook_cfg.get("domains", {}))
+
     for spec_path in config["datasets"]:
         spec = load_dataset_spec(resolve_path(spec_path, project_root))
         spec.path = resolve_path(spec.path, project_root)
         logger.info("[INFO] Processing dataset: %s", spec.dataset_id)
 
         files_read.append(collect_file_metadata(spec_path))
-        files_read.append(collect_file_metadata(spec.path))
+        if spec.dataset_id not in derived_views:
+            files_read.append(collect_file_metadata(spec.path))
 
-        input_result = validate_file_input(spec)
+        input_spec = replace(spec, path=single_workbook_spec.path, file_type=single_workbook_spec.file_type) if single_workbook_spec and spec.dataset_id in derived_views else spec
+        input_result = validate_file_input(input_spec)
         all_results.append(input_result)
         write_step_result(input_result, reports_root / spec.dataset_id)
         if not input_result.success and config.get("settings", {}).get("fail_fast", False):
             raise FileNotFoundError(f"Critical input error for {spec.dataset_id}")
 
-        df = read_table_from_spec(spec)
+        if spec.dataset_id in derived_views:
+            df = derived_views[spec.dataset_id].copy()
+        else:
+            df = read_table_from_spec(spec)
         df = cast_expected_types(df, spec)
 
         validations = [
