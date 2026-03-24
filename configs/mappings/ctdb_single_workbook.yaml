@@ -1,4 +1,11 @@
 raw_to_canonical:
+  "PATIENT_RECORD_NUMBER": patient_id
+  "SUBJECT_NUMBER": visit_id
+  "DOB": birth_date
+  "VISIT_DATE": visit_date
+  "SEX": sex
+  "RACE": race
+  "ETHNICITY": ethnicity
   "Patient ID": patient_id
   "Visit ID": visit_id
   "Visit Date": visit_date

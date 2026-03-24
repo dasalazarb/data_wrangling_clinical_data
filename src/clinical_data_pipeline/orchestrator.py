@@ -213,10 +213,14 @@ def _derive_domain_views(base_df: pd.DataFrame, domain_mappings: dict[str, dict]
     for domain_name, mapping in domain_mappings.items():
         columns = mapping.get("columns", [])
         rename_map = mapping.get("rename", {})
-        missing = [col for col in columns if col not in base_df.columns]
-        if missing:
-            raise ValueError(f"Domain '{domain_name}' references missing columns in single workbook input: {missing}")
-        view = base_df.loc[:, columns].rename(columns=rename_map).copy()
+        # Some domains include optional columns that may not exist in all workbook exports.
+        # Materialize any missing domain columns as NA so downstream schema validation can
+        # enforce required/optional rules without failing the whole orchestration step.
+        view = base_df.copy()
+        for col in columns:
+            if col not in view.columns:
+                view[col] = pd.NA
+        view = view.loc[:, columns].rename(columns=rename_map).copy()
         derived[domain_name] = view
     return derived
 
