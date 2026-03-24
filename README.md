@@ -2,9 +2,25 @@
 
 A Python pipeline for clinical/patient data processing with a **single-workbook-first** workflow, domain derivation, validation, merge auditing, and reproducible outputs.
 
-## Single workbook first
+## Codebook-driven cohort mode (default)
 
-The default operating mode is a single canonical Excel workbook:
+The default workflow now builds the final cohort directly from the two raw CTDB exports:
+
+- `data/raw/CTDB Data Download 11D.xlsx`
+- `data/raw/CTDB Data Download 15D.xlsx`
+
+Variables are selected from `data/input_catalog/codebook_final_harmonized_once_quince.xlsx`, sheet `final_codebook`, using column `QUESTION_NAME`.
+Rows with `needs_review = TRUE` are preserved in the merged output with additional flags, and (when available in both studies) both original source versions are retained as `__once` and `__quince` columns.
+
+Outputs include:
+
+1. analysis + quality validation for `11D`,
+2. analysis + quality validation for `15D`,
+3. analysis + quality validation for the merged harmonized dataset.
+
+## Single workbook first (legacy mode)
+
+Legacy mode (optional) can still run from a single canonical Excel workbook:
 
 - If `data/raw/CTDB Data Download.xlsx` exists, the pipeline treats it as the canonical input source.
 - The pipeline applies canonical mapping rules, derives domain datasets, validates each domain, and runs merge audits.
