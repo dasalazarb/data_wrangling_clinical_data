@@ -3,8 +3,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from clinical_data_pipeline.io.readers import read_ctdb_merged_excel, read_table
+from clinical_data_pipeline.io.readers import read_ctdb_merged_excel, read_table, read_table_from_spec
 from clinical_data_pipeline.io.writers import write_table
+from clinical_data_pipeline.models import DatasetSpec
 
 
 def test_write_and_read_parquet_roundtrip(tmp_path: Path):
@@ -68,6 +69,58 @@ def test_read_table_routes_ctdb_merged_excel(tmp_path: Path):
 
     assert loaded.columns[14] == "VAR"
     assert loaded.iloc[0, 0] == "p1"
+
+
+def test_read_table_from_spec_routes_ctdb_header_strategy(tmp_path: Path):
+    path = tmp_path / "ctdb_strategy.xlsx"
+    raw = pd.DataFrame(
+        [
+            ["meta"] * 5,
+            ["ignore"] * 5,
+            ["demo_1", "demo_2", "demo_3", "clin_a", "clin_b"],
+            ["skip"] * 5,
+            ["p1", "a", "b", 1, 2],
+        ]
+    )
+    raw.to_excel(path, header=False, index=False)
+    spec = DatasetSpec(
+        dataset_id="ctdb",
+        path=path,
+        file_type="xlsx",
+        primary_key=None,
+        required_columns=[],
+        optional_columns=[],
+        expected_dtypes={},
+        header_strategy="ctdb_merged_v1",
+        demographics_column_end="C",
+        demographics_header_row=3,
+        clinical_header_row=3,
+        skip_rows_after_header=1,
+    )
+
+    loaded = read_table_from_spec(spec)
+
+    assert list(loaded.columns) == ["demo_1", "demo_2", "demo_3", "clin_a", "clin_b"]
+    assert loaded.iloc[0, 0] == "p1"
+
+
+def test_read_table_from_spec_keeps_backward_compat_for_normal_xlsx(tmp_path: Path):
+    path = tmp_path / "normal.xlsx"
+    expected = pd.DataFrame({"patient_id": ["p1"], "value": [10]})
+    expected.to_excel(path, index=False)
+    spec = DatasetSpec(
+        dataset_id="normal",
+        path=path,
+        file_type="xlsx",
+        primary_key=None,
+        required_columns=[],
+        optional_columns=[],
+        expected_dtypes={},
+    )
+
+    loaded = read_table_from_spec(spec)
+
+    pd.testing.assert_frame_equal(loaded, expected)
 
 
 def test_read_ctdb_merged_excel_raises_on_missing_required_headers(tmp_path: Path):

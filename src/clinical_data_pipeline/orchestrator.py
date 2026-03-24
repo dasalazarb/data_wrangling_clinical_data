@@ -8,7 +8,7 @@ import pandas as pd
 
 from .io.config_loader import load_dataset_spec, load_yaml
 from .io.manifest import build_run_context, collect_file_metadata
-from .io.readers import read_table
+from .io.readers import read_table_from_spec
 from .io.writers import write_table
 from .integrate.enterprise import run_optional_enterprise_checks
 from .integrate.merge import extract_unmatched, perform_merge, validate_merge_keys
@@ -105,7 +105,7 @@ def run_patient_pipeline(config_path: str | Path, project_root: str | Path | Non
         if not input_result.success and config.get("settings", {}).get("fail_fast", False):
             raise FileNotFoundError(f"Critical input error for {spec.dataset_id}")
 
-        df = read_table(spec.path, spec.file_type)
+        df = read_table_from_spec(spec)
         df = cast_expected_types(df, spec)
 
         validations = [
