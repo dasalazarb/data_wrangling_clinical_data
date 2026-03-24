@@ -45,11 +45,12 @@ def test_derive_domain_views_selects_expected_columns():
     assert list(derived["visits"].columns) == ["visit_id", "patient_id", "visit_date", "essdai", "esspri"]
 
 
-def test_derive_domain_views_raises_for_missing_columns():
+def test_derive_domain_views_fills_missing_columns_with_na():
     base = pd.DataFrame({"patient_id": ["P1"]})
-
-    with pytest.raises(ValueError, match="missing columns"):
-        _derive_domain_views(base, {"labs": {"columns": ["lab_id", "patient_id"]}})
+    derived = _derive_domain_views(base, {"labs": {"columns": ["lab_id", "patient_id"]}})
+    assert "labs" in derived
+    assert list(derived["labs"].columns) == ["lab_id", "patient_id"]
+    assert pd.isna(derived["labs"].loc[0, "lab_id"])
 
 
 def test_normalize_single_workbook_with_mapping_applies_manual_auto_and_audit(tmp_path):
