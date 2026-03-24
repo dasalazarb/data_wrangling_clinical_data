@@ -78,10 +78,13 @@ class PipelineSettings(BaseModel):
     merge_plan: MergePlanSettings | None = None
     settings: PipelinePolicySettings = Field(default_factory=PipelinePolicySettings)
     catalog: dict[str, Any] | None = None
+    cohort_harmonization: dict[str, Any] | None = None
 
     @model_validator(mode="after")
     def require_merge_configuration(self) -> "PipelineSettings":
         if self.catalog is not None:
+            return self
+        if self.cohort_harmonization is not None and self.cohort_harmonization.get("enabled", False):
             return self
 
         if self.merge_plan is None and self.merge_plan_config is None:

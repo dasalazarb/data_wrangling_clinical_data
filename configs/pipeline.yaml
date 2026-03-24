@@ -12,61 +12,16 @@ settings:
   fail_fast: false
   log_level: INFO
 
-single_workbook_input:
+cohort_harmonization:
   enabled: true
-  auto_detect: true
-  input_layout: clean_dataframe
-  path: data/raw/CTDB Data Download.xlsx
-  sheet_name: 0
   patient_id_column: patient_id
-  mapping_config: configs/mappings/ctdb_single_workbook.yaml
-  domains:
-    demographics:
-      columns:
-        - patient_id
-        - sex
-        - birth_date
-        - race
-        - ethnicity
-        - death_date
-        - index_date
-    visits:
-      columns:
-        - visit_id
-        - patient_id
-        - visit_date
-        - essdai
-        - esspri
-    labs:
-      columns:
-        - lab_id
-        - patient_id
-        - visit_date
-        - ana_positive
-        - rf_value
-        - anti_ena
-    outcomes:
-      columns:
-        - patient_id
-        - severe_disease
-        - last_followup_date
-        - event_date
+  once_source_path: data/raw/CTDB Data Download 11D.xlsx
+  quince_source_path: data/raw/CTDB Data Download 15D.xlsx
+  once_sheet_name: 0
+  quince_sheet_name: 0
+  codebook_path: data/input_catalog/codebook_final_harmonized_once_quince.xlsx
+  codebook_sheet: final_codebook
+  question_name_column: QUESTION_NAME
+  needs_review_column: needs_review
 
-# Datasets below are logical views derived from the single workbook input.
-# They continue to define output contracts for each domain-specific dataset.
-datasets:
-  - configs/files/demographics.yaml
-  - configs/files/visits.yaml
-  - configs/files/labs.yaml
-  - configs/files/outcomes.yaml
-
-# Fallback (legacy multi-file mode):
-# single_workbook_input:
-#   enabled: false
-# datasets:
-#   - configs/files/demographics.yaml
-#   - configs/files/visits.yaml
-#   - configs/files/labs.yaml
-#   - configs/files/outcomes.yaml
-
-merge_plan_config: configs/merges/patient_pipeline_merges.yaml
+datasets: []

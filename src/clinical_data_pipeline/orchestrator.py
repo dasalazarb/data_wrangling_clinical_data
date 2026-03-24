@@ -225,6 +225,192 @@ def _derive_domain_views(base_df: pd.DataFrame, domain_mappings: dict[str, dict]
     return derived
 
 
+def _is_truthy(value: object) -> bool:
+    if pd.isna(value):
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "x"}
+
+
+def _load_final_codebook(codebook_path: Path, sheet_name: str, question_name_column: str, review_column: str) -> pd.DataFrame:
+    codebook_df = pd.read_excel(codebook_path, sheet_name=sheet_name)
+    required = [question_name_column, review_column]
+    missing = [col for col in required if col not in codebook_df.columns]
+    if missing:
+        raise ValueError(f"Final codebook is missing required columns: {missing}")
+
+    out = codebook_df.copy()
+    out[question_name_column] = out[question_name_column].astype("string").str.strip()
+    out = out[out[question_name_column].notna() & (out[question_name_column] != "")]
+    out = out.drop_duplicates(subset=[question_name_column], keep="first")
+    out[review_column] = out[review_column].map(_is_truthy)
+    return out
+
+
+def _run_dataset_validations(df: pd.DataFrame, spec: DatasetSpec, reports_root: Path) -> list[StepResult]:
+    results = [
+        validate_columns(df, spec),
+        validate_dtypes(df, spec),
+        profile_missingness(df, spec),
+        validate_primary_key(df, spec),
+        validate_allowed_values(df, spec),
+        run_business_rules(df, spec),
+        run_sanity_checks(df, spec),
+    ]
+    for result in results:
+        write_step_result(result, reports_root / spec.dataset_id)
+    return results
+
+
+def _build_harmonized_merged_dataset(
+    once_df: pd.DataFrame,
+    quince_df: pd.DataFrame,
+    patient_id_column: str,
+    questions: list[str],
+    needs_review_questions: set[str],
+) -> pd.DataFrame:
+    join_keys = [patient_id_column]
+    once_cols = [col for col in questions if col in once_df.columns and col != patient_id_column]
+    quince_cols = [col for col in questions if col in quince_df.columns and col != patient_id_column]
+    merged = once_df[join_keys + once_cols].merge(
+        quince_df[join_keys + quince_cols],
+        on=patient_id_column,
+        how="outer",
+        suffixes=("__once", "__quince"),
+    )
+
+    for question in questions:
+        if question == patient_id_column:
+            continue
+        once_col = f"{question}__once"
+        quince_col = f"{question}__quince"
+        in_once = once_col in merged.columns
+        in_quince = quince_col in merged.columns
+        if in_once and in_quince:
+            merged[question] = merged[once_col].combine_first(merged[quince_col])
+            if question in needs_review_questions:
+                merged[f"{question}__needs_review_flag"] = True
+                conflict = (
+                    merged[once_col].notna()
+                    & merged[quince_col].notna()
+                    & (merged[once_col].astype("string") != merged[quince_col].astype("string"))
+                )
+                merged[f"{question}__source_conflict_flag"] = conflict
+        elif in_once:
+            merged[question] = merged[once_col]
+            if question in needs_review_questions:
+                merged[f"{question}__needs_review_flag"] = True
+                merged[f"{question}__source_conflict_flag"] = False
+        elif in_quince:
+            merged[question] = merged[quince_col]
+            if question in needs_review_questions:
+                merged[f"{question}__needs_review_flag"] = True
+                merged[f"{question}__source_conflict_flag"] = False
+        else:
+            merged[question] = pd.NA
+            if question in needs_review_questions:
+                merged[f"{question}__needs_review_flag"] = True
+                merged[f"{question}__source_conflict_flag"] = False
+    return merged
+
+
+def _run_codebook_driven_cohort_pipeline(
+    *,
+    config: dict,
+    project_root: Path,
+    reports_root: Path,
+    staging_root: Path,
+    curated_root: Path,
+    analytic_root: Path,
+    logger,
+    all_results: list[StepResult],
+    generated_datasets: dict[str, dict[str, str]],
+    files_read: list[dict],
+) -> dict:
+    cohort_cfg = config.get("cohort_harmonization", {})
+    patient_id_column = cohort_cfg.get("patient_id_column", "patient_id")
+    review_col = cohort_cfg.get("needs_review_column", "needs_review")
+    qname_col = cohort_cfg.get("question_name_column", "QUESTION_NAME")
+
+    once_path = resolve_path(cohort_cfg["once_source_path"], project_root)
+    quince_path = resolve_path(cohort_cfg["quince_source_path"], project_root)
+    codebook_path = resolve_path(cohort_cfg["codebook_path"], project_root)
+    codebook_sheet = cohort_cfg.get("codebook_sheet", "final_codebook")
+
+    files_read.extend([collect_file_metadata(once_path), collect_file_metadata(quince_path), collect_file_metadata(codebook_path)])
+
+    once_df = pd.read_excel(once_path, sheet_name=cohort_cfg.get("once_sheet_name", 0))
+    quince_df = pd.read_excel(quince_path, sheet_name=cohort_cfg.get("quince_sheet_name", 0))
+    once_df.columns = [str(col).strip() for col in once_df.columns]
+    quince_df.columns = [str(col).strip() for col in quince_df.columns]
+
+    codebook_df = _load_final_codebook(codebook_path, codebook_sheet, qname_col, review_col)
+    selected_questions = codebook_df[qname_col].tolist()
+    needs_review_questions = set(codebook_df.loc[codebook_df[review_col], qname_col].tolist())
+
+    once_available = set(once_df.columns)
+    quince_available = set(quince_df.columns)
+    shared = sorted([q for q in selected_questions if q in once_available and q in quince_available])
+    once_only = sorted([q for q in selected_questions if q in once_available and q not in quince_available])
+    quince_only = sorted([q for q in selected_questions if q in quince_available and q not in once_available])
+
+    coverage_report = pd.DataFrame(
+        {
+            "question_name": selected_questions,
+            "in_once": [q in once_available for q in selected_questions],
+            "in_quince": [q in quince_available for q in selected_questions],
+            "shared_between_sources": [q in shared for q in selected_questions],
+            "needs_review": [q in needs_review_questions for q in selected_questions],
+        }
+    )
+    coverage_path = reports_root / "cohort_harmonization" / f"codebook_coverage_{compact_ts()}.csv"
+    write_table(coverage_report, coverage_path)
+
+    if patient_id_column not in once_df.columns or patient_id_column not in quince_df.columns:
+        raise ValueError(f"patient_id column '{patient_id_column}' must exist in both source datasets")
+
+    once_keep = [patient_id_column] + [q for q in selected_questions if q in once_df.columns and q != patient_id_column]
+    quince_keep = [patient_id_column] + [q for q in selected_questions if q in quince_df.columns and q != patient_id_column]
+    once_view = once_df[once_keep].copy()
+    quince_view = quince_df[quince_keep].copy()
+
+    merged_view = _build_harmonized_merged_dataset(
+        once_view,
+        quince_view,
+        patient_id_column,
+        [patient_id_column] + [q for q in selected_questions if q != patient_id_column],
+        needs_review_questions,
+    )
+
+    analysis_specs = [
+        DatasetSpec("once_raw_analysis", once_path, "xlsx", patient_id_column, [patient_id_column], [c for c in once_view.columns if c != patient_id_column], {}, {}, []),
+        DatasetSpec("quince_raw_analysis", quince_path, "xlsx", patient_id_column, [patient_id_column], [c for c in quince_view.columns if c != patient_id_column], {}, {}, []),
+        DatasetSpec("merged_harmonized_analysis", Path(""), "parquet", patient_id_column, [patient_id_column], [c for c in merged_view.columns if c != patient_id_column], {}, {}, []),
+    ]
+    for df_obj, spec in zip([once_view, quince_view, merged_view], analysis_specs):
+        all_results.extend(_run_dataset_validations(df_obj, spec, reports_root))
+
+    once_out = curated_root / f"once_raw_analysis_{compact_ts()}.parquet"
+    quince_out = curated_root / f"quince_raw_analysis_{compact_ts()}.parquet"
+    merged_out = analytic_root / f"merged_harmonized_analysis_{compact_ts()}.parquet"
+    write_table(once_view, once_out)
+    write_table(quince_view, quince_out)
+    write_table(merged_view, merged_out)
+    generated_datasets["curated"]["once_raw_analysis"] = str(once_out)
+    generated_datasets["curated"]["quince_raw_analysis"] = str(quince_out)
+    generated_datasets["analytic"]["merged_harmonized_analysis"] = str(merged_out)
+    generated_datasets["staging"]["codebook_coverage"] = str(coverage_path)
+
+    logger.info("[INFO] Cohort harmonization completed (shared=%s, once_only=%s, quince_only=%s)", len(shared), len(once_only), len(quince_only))
+    return {
+        "shared_variables_count": len(shared),
+        "once_only_variables_count": len(once_only),
+        "quince_only_variables_count": len(quince_only),
+        "needs_review_variables_count": len(needs_review_questions),
+        "coverage_report_path": str(coverage_path),
+        "merged_output_path": str(merged_out),
+    }
+
+
 def run_variable_catalog_pipeline(config_path: str | Path, project_root: str | Path | None = None) -> dict:
     project_root = Path(project_root or guess_project_root(config_path))
     config_obj = get_settings(config_path=config_path, project_root=project_root)
@@ -277,6 +463,56 @@ def run_patient_pipeline(config_path: str | Path, project_root: str | Path | Non
     curated_root = Path(versioned_paths.get("curated_dir", paths["curated_dir"]))
     analytic_root = Path(versioned_paths.get("analytic_dir", paths["analytic_dir"]))
     excluded_root = Path(versioned_paths.get("excluded_dir", paths["excluded_dir"]))
+    cohort_mode_enabled = bool(config.get("cohort_harmonization", {}).get("enabled", False))
+
+    if cohort_mode_enabled:
+        logger.info("[INFO] Input mode selected: codebook-driven cohort harmonization.")
+        cohort_metrics = _run_codebook_driven_cohort_pipeline(
+            config=config,
+            project_root=project_root,
+            reports_root=reports_root,
+            staging_root=staging_root,
+            curated_root=curated_root,
+            analytic_root=analytic_root,
+            logger=logger,
+            all_results=all_results,
+            generated_datasets=generated_datasets,
+            files_read=files_read,
+        )
+
+        duration_seconds = round(time.perf_counter() - pipeline_t0, 4)
+        manifest_path = write_run_manifest(
+            run_context,
+            files_read=files_read,
+            validation_results=all_results,
+            generated_datasets=generated_datasets,
+            generated_artifacts={},
+            exclusions={"left_only_total": 0, "right_only_total": 0, "paths": {}},
+            merge_metrics={},
+            duration_seconds=duration_seconds,
+            out_dir=Path(paths["reports_dir"]) / "manifests",
+        )
+
+        manifest_payload = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
+        final_summary = build_final_summary(manifest_payload)
+        final_summary.update(
+            {
+                "project_name": config.get("project_name", "clinical_pipeline"),
+                "step_count": len(all_results),
+                "steps_failed": [r.step_name for r in all_results if not r.success],
+                "report_root": str(reports_root),
+                "analytic_root": str(analytic_root),
+                "manifest_path": str(manifest_path),
+                "cohort_harmonization": cohort_metrics,
+            }
+        )
+        summary_path = write_final_summary(
+            final_summary,
+            reports_root / "final_summary",
+            f"pipeline_final_summary_{compact_ts()}.json",
+        )
+        logger.info("[INFO] Cohort pipeline completed. Summary: %s", summary_path)
+        return final_summary
 
     single_workbook_cfg = config.get("single_workbook_input", {})
     raw_dir = resolve_path(paths["raw_dir"], project_root)
