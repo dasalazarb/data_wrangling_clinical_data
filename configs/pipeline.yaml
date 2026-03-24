@@ -13,6 +13,7 @@ settings:
   log_level: INFO
 
 single_workbook_input:
+  auto_detect: true
   enabled: true
   path: data/raw/CTDB Data Download.xlsx
   sheet_name: 0
