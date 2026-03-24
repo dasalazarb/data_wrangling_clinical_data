@@ -1,0 +1,82 @@
+raw_to_canonical:
+  "Patient ID": patient_id
+  "Visit ID": visit_id
+  "Visit Date": visit_date
+  "Sex": sex
+  "Birth Date": birth_date
+  "Race": race
+  "Ethnicity": ethnicity
+  "Death Date": death_date
+  "Index Date": index_date
+  "ESSDAI": essdai
+  "ESSPRI": esspri
+  "Lab ID": lab_id
+  "ANA Positive": ana_positive
+  "RF Value": rf_value
+  "Anti ENA": anti_ena
+  "Severe Disease": severe_disease
+  "Last Followup Date": last_followup_date
+  "Event Date": event_date
+
+datasets:
+  demographics:
+    target_columns:
+      - patient_id
+      - sex
+      - birth_date
+      - race
+      - ethnicity
+      - death_date
+      - index_date
+    required_columns:
+      - patient_id
+      - sex
+      - birth_date
+    on_missing_required: error
+  visits:
+    target_columns:
+      - visit_id
+      - patient_id
+      - visit_date
+      - essdai
+      - esspri
+    required_columns:
+      - visit_id
+      - patient_id
+      - visit_date
+    on_missing_required: error
+  labs:
+    target_columns:
+      - lab_id
+      - patient_id
+      - visit_date
+      - ana_positive
+      - rf_value
+      - anti_ena
+    required_columns:
+      - lab_id
+      - patient_id
+    on_missing_required: error
+  outcomes:
+    target_columns:
+      - patient_id
+      - severe_disease
+      - last_followup_date
+      - event_date
+    required_columns:
+      - patient_id
+      - severe_disease
+    on_missing_required: error
+
+text_normalization:
+  trim: true
+  replace_newlines: true
+  replace_newlines_with: " "
+  collapse_whitespace: true
+  uppercase_columns:
+    - sex
+    - race
+    - ethnicity
+    - ana_positive
+    - severe_disease
+    - anti_ena
