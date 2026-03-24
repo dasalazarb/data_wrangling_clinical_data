@@ -1,114 +1,48 @@
 # Clinical Data Pipeline
 
-Robust Python pipeline for **clinical/patient data wrangling, validation, merge auditing, traceability, and reproducibility**, designed for small-to-medium datasets where **quality and auditability matter more than distributed compute**.
+A Python pipeline for clinical/patient data processing with a **single-workbook-first** workflow, domain derivation, validation, merge auditing, and reproducible outputs.
 
-## Project structure
+## Single workbook first
 
-```text
-clinical_data_pipeline_repo/
-├── configs/
-│   ├── files/
-│   ├── merges/
-│   ├── rules/
-│   └── catalog/
-├── data/
-├── logs/
-├── reports/
-├── src/clinical_data_pipeline/
-│   ├── io/
-│   ├── validation/
-│   ├── transform/
-│   ├── integrate/
-│   ├── reporting/
-│   └── utils/
-├── tests/
-└── pyproject.toml
-```
+The default operating mode is a single canonical Excel workbook:
 
-## Quick start
+- If `data/raw/CTDB Data Download.xlsx` exists, the pipeline treats it as the canonical input source.
+- The pipeline applies canonical mapping rules, derives domain datasets, validates each domain, and runs merge audits.
+- Final curated artifacts and reports are written to configured output paths.
 
-Requiere **Python 3.10 o superior**.
+If that workbook is not present, the pipeline falls back to per-domain source files (for example demographics, visits, labs, outcomes) according to dataset configs.
+
+## Quick Start
+
+Requires **Python 3.10+**.
 
 ```bash
 pip install -e .
-```
-
-### Variable catalog flow
-
-```bash
 clinical-data-pipeline validate-catalog --config configs/catalog/variable_catalog.yaml
-```
-
-### Patient-data pipeline
-
-```bash
 clinical-data-pipeline run-patient-pipeline --config configs/pipeline.yaml
 ```
 
-## Config layout
+## Input selection behavior
 
-- Dataset definitions: `configs/files/*.yaml`
-- Merge plan: `configs/merges/patient_pipeline_merges.yaml`
-- Rules per dataset: `configs/rules/*_rules.yaml`
-- Variable catalog: `configs/catalog/variable_catalog.yaml`
+1. If `data/raw/CTDB Data Download.xlsx` exists, the pipeline uses it as the canonical source.
+2. Otherwise, the pipeline uses per-domain source files declared in `datasets` entries.
 
-`configs/pipeline.yaml` references only the new tree under `configs/files`, `configs/merges`, and `configs/rules`.
+This behavior is controlled by the pipeline config and single-workbook settings.
 
----
+## End-to-end flow (compact)
 
-## Nuevo escenario soportado: input único en Excel (`CTDB Data Download.xlsx`)
+1. **Source ingestion**  
+   Read the canonical workbook (preferred) or per-domain source files.
+2. **Canonical mapping**  
+   Standardize columns and data semantics using mapping configuration.
+3. **Domain derivation**  
+   Derive logical domain outputs: `demographics`, `visits`, `labs`, `outcomes`.
+4. **Validation and merge audit outputs**  
+   Run dataset quality checks and merge-audit checks; emit issue logs and summaries.
+5. **Final artifacts and reports**  
+   Write processed domain datasets and pipeline reports to configured directories.
 
-Además del flujo tradicional por archivos individuales (`demographics.csv`, `visits.csv`, etc.), el pipeline está diseñado para incorporar un flujo de **fuente única** cuando la entrada viene en un solo workbook con encabezados combinados (merged).
-
-### Objetivo
-
-Tomar `CTDB Data Download.xlsx` como entrada de `run-patient-pipeline`, estandarizar sus encabezados y producir un dataset limpio donde:
-
-1. La primera fila efectiva del output contiene los **nombres finales de variables**.
-2. Las filas siguientes contienen la **información de pacientes**.
-3. No se requiere generar archivos individuales manualmente antes del pipeline.
-
-### Estructura esperada del Excel CTDB
-
-Para la hoja de trabajo principal:
-
-- **Columnas A:N**
-  - Fila 1 y 2 suelen estar combinadas/merged por columna.
-  - Los nombres de variables demográficas válidos se toman de la **fila 3**.
-- **Columnas O en adelante**
-  - La fila 1 puede estar merged por categoría (bloques).
-  - Los nombres de variables clínicos se toman de la **fila 2**.
-  - La fila 3 en este bloque contiene descripciones y se puede omitir para nombrado.
-
-### Regla de construcción de encabezados
-
-Al normalizar el workbook:
-
-- Para índices de columna `0..13` (A:N): usar header de fila 3.
-- Para índices de columna `>=14` (O+): usar header de fila 2.
-- Limpiar nombres (`trim`, espacios dobles, caracteres invisibles) y asegurar unicidad.
-- Eliminar filas de encabezado (1, 2 y 3) del cuerpo de datos final.
-
-### Resultado esperado del preprocesamiento
-
-Un DataFrame/tabular único con:
-
-- columnas canónicas listas para validación,
-- tipos iniciales casteables por reglas del dataset,
-- registros de pacientes listos para el resto de validaciones y merges.
-
----
-
-## Integración recomendada en `run-patient-pipeline`
-
-Para cerrar el ciclo de los dos comandos sin romper el flujo actual:
-
-1. `validate-catalog` mantiene su función para catálogo de variables.
-2. `run-patient-pipeline` acepta un modo `single_workbook_input` para CTDB.
-3. El pipeline deriva internamente las vistas lógicas (`demographics`, `visits`, `labs`, `outcomes`) desde el workbook ya normalizado.
-4. Se reutilizan validadores, reportes y auditoría de merge existentes.
-
-### Ejemplo de configuración (referencial)
+## Minimal config example (clean input mode)
 
 ```yaml
 project_name: sjogren_clinical_data_pipeline
@@ -129,29 +63,31 @@ settings:
 
 single_workbook_input:
   enabled: true
+  auto_detect: true
+  input_layout: clean_dataframe
   path: data/raw/CTDB Data Download.xlsx
-  sheet_name: Sheet1
-  header_strategy: ctdb_merged_v1
-  demographics_column_end: N
-  demographics_header_row: 3
-  clinical_header_row: 2
+  sheet_name: 0
+  patient_id_column: patient_id
+  mapping_config: configs/mappings/ctdb_single_workbook.yaml
+  domains:
+    demographics:
+      columns: [patient_id, sex, birth_date, race, ethnicity, death_date, index_date]
+    visits:
+      columns: [visit_id, patient_id, visit_date, essdai, esspri]
+    labs:
+      columns: [lab_id, patient_id, visit_date, ana_positive, rf_value, anti_ena]
+    outcomes:
+      columns: [patient_id, severe_disease, last_followup_date, event_date]
 
-# El resto de datasets/merges puede mantenerse para validación y ensamble
-# siempre que se mapeen columnas canónicas desde la fuente única.
+datasets:
+  - configs/files/demographics.yaml
+  - configs/files/visits.yaml
+  - configs/files/labs.yaml
+  - configs/files/outcomes.yaml
+
+merge_plan_config: configs/merges/patient_pipeline_merges.yaml
 ```
 
-> Nota: el bloque anterior es una guía de configuración de entrada para este tipo de archivo. Ajusta nombres de hoja y mapeos según tu archivo real.
+## Legacy note
 
----
-
-## Validación de calidad para el flujo CTDB
-
-Checks recomendados tras normalizar el workbook:
-
-- Verificar columnas requeridas por dominio (`required_columns`).
-- Verificar dtypes esperados (`expected_dtypes`).
-- Validar claves primarias y duplicados.
-- Auditar dominios permitidos (`allowed_values`).
-- Mantener reportes de issues y summary por dataset y por merge.
-
-Esto permite mantener trazabilidad y reproducibilidad aun cuando el input llegue como archivo único merged.
+Older merged-header reconstruction details are intentionally removed from the main workflow documentation. Use legacy notes only when maintaining historical ingestion behavior.
