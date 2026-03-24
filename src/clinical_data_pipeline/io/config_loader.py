@@ -34,4 +34,10 @@ def load_dataset_spec(path: str | Path) -> DatasetSpec:
         expected_dtypes=cfg.get("expected_dtypes", {}),
         allowed_values=cfg.get("allowed_values", {}),
         rules=cfg.get("rules", []),
+        sheet_name=cfg.get("sheet_name"),
+        header_strategy=cfg.get("header_strategy"),
+        demographics_column_end=cfg.get("demographics_column_end", "N"),
+        demographics_header_row=cfg.get("demographics_header_row", 3),
+        clinical_header_row=cfg.get("clinical_header_row", 2),
+        skip_rows_after_header=cfg.get("skip_rows_after_header", 0),
     )

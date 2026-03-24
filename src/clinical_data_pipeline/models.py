@@ -41,3 +41,9 @@ class DatasetSpec:
     expected_dtypes: dict[str, str]
     allowed_values: dict[str, list[Any]] = field(default_factory=dict)
     rules: list[dict[str, Any]] = field(default_factory=list)
+    sheet_name: str | int | None = None
+    header_strategy: str | None = None
+    demographics_column_end: str = "N"
+    demographics_header_row: int = 3
+    clinical_header_row: int = 2
+    skip_rows_after_header: int = 0
