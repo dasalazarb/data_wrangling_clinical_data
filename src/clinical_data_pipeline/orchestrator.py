@@ -275,11 +275,50 @@ def run_patient_pipeline(config_path: str | Path, project_root: str | Path | Non
     excluded_root = Path(versioned_paths.get("excluded_dir", paths["excluded_dir"]))
 
     single_workbook_cfg = config.get("single_workbook_input", {})
-    if single_workbook_cfg.get("enabled", False):
+    raw_dir = resolve_path(paths["raw_dir"], project_root)
+    auto_detect_path = raw_dir / "CTDB Data Download.xlsx"
+    auto_detect_enabled = single_workbook_cfg.get("auto_detect", True)
+    auto_detected_single_workbook = bool(auto_detect_enabled and auto_detect_path.exists())
+    manual_single_workbook_enabled = bool(single_workbook_cfg.get("enabled", False))
+    single_workbook_enabled = bool(auto_detected_single_workbook or manual_single_workbook_enabled)
+    selected_input_source_path: Path | None = None
+    selected_input_mode = "per_file_datasets"
+
+    if auto_detected_single_workbook:
+        selected_input_source_path = auto_detect_path
+        selected_input_mode = "single_workbook"
+        logger.info(
+            "[INFO] Input source selected: single workbook auto-detected at %s; per-file inputs will be derived from this workbook.",
+            selected_input_source_path,
+        )
+    elif manual_single_workbook_enabled:
+        workbook_cfg_path = single_workbook_cfg.get("path")
+        if workbook_cfg_path is None:
+            raise ValueError("single_workbook_input.enabled is true but no 'path' is configured")
+        selected_input_source_path = resolve_path(workbook_cfg_path, project_root)
+        selected_input_mode = "single_workbook"
+        logger.info(
+            "[INFO] Input source selected: single workbook from config path %s.",
+            selected_input_source_path,
+        )
+    else:
+        logger.info(
+            "[INFO] Input source selected: per-file datasets (single workbook auto-detect=%s, candidate=%s).",
+            bool(auto_detect_enabled),
+            auto_detect_path,
+        )
+
+    run_context["input_mode"] = {
+        "mode": selected_input_mode,
+        "single_workbook_auto_detected": auto_detected_single_workbook,
+        "selected_source_path": str(selected_input_source_path) if selected_input_source_path is not None else None,
+    }
+
+    if single_workbook_enabled:
         input_layout = str(single_workbook_cfg.get("input_layout", "")).strip().lower()
         is_clean_dataframe_layout = input_layout == "clean_dataframe"
 
-        workbook_path = resolve_path(single_workbook_cfg["path"], project_root)
+        workbook_path = selected_input_source_path if selected_input_source_path is not None else auto_detect_path
         workbook_file_type = single_workbook_cfg.get("file_type", "xlsx")
         workbook_header_strategy = single_workbook_cfg.get("header_strategy")
         workbook_demographics_column_end = "N"
