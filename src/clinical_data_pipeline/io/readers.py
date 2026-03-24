@@ -121,7 +121,7 @@ def read_table(path: str | Path, file_type: str | None = None, sheet_name: str |
 
 def read_table_from_spec(spec: DatasetSpec) -> pd.DataFrame:
     header_strategy = (spec.header_strategy or "").lower()
-    if header_strategy == "ctdb_merged_v1" or spec.file_type.lower() == "ctdb_merged_excel":
+    if header_strategy == "ctdb_merged_v1":
         return read_ctdb_merged_excel(
             spec.path,
             sheet_name=spec.sheet_name if spec.sheet_name is not None else 0,
@@ -130,4 +130,7 @@ def read_table_from_spec(spec: DatasetSpec) -> pd.DataFrame:
             clinical_header_row=spec.clinical_header_row,
             skip_rows_after_header=spec.skip_rows_after_header,
         )
-    return read_table(spec.path, spec.file_type, sheet_name=spec.sheet_name)
+    file_type = spec.file_type
+    if header_strategy in {"", "clean_dataframe"} and str(file_type).lower() == "ctdb_merged_excel":
+        file_type = "xlsx"
+    return read_table(spec.path, file_type, sheet_name=spec.sheet_name)
